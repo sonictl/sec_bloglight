@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>创建文章 - 密码博客</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 600px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .header h1 {
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+            font-size: 2rem;
+        }
+        
+        .header p {
+            color: #7f8c8d;
+            font-size: 1rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+            font-weight: bold;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .form-textarea {
+            min-height: 200px;
+            resize: vertical;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .form-col {
+            flex: 1;
+        }
+        
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+        
+        .error-message {
+            color: #e74c3c;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            display: none;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 1rem;
+        }
+        
+        .loading-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .char-count {
+            color: #7f8c8d;
+            font-size: 0.8rem;
+            text-align: right;
+            margin-top: 0.25rem;
+        }
+        
+        .char-count.warning {
+            color: #e67e22;
+        }
+        
+        .char-count.danger {
+            color: #e74c3c;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 1.5rem;
+                margin: 1rem;
+            }
+            
+            .form-row {
+                flex-direction: column;
+            }
+            
+            .btn-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>创建新文章</h1>
+            <p>填写以下信息创建一篇新的文章</p>
+        </div>
+
+        <div class="success-message" id="successMessage">
+            文章创建成功！3秒后自动跳转到首页...
+        </div>
+
+        <form id="createForm">
+            <div class="form-group">
+                <label class="form-label" for="title">文章标题</label>
+                <input type="text" id="title" class="form-input" placeholder="请输入文章标题" maxlength="100">
+                <div class="char-count" id="titleCount">0/100</div>
+                <div class="error-message" id="titleError"></div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="author">作者</label>
+                <input type="text" id="author" class="form-input" placeholder="请输入作者名称" maxlength="50">
+                <div class="char-count" id="authorCount">0/50</div>
+                <div class="error-message" id="authorError"></div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="content">文章正文</label>
+                <textarea id="content" class="form-input form-textarea" placeholder="请输入文章内容" maxlength="10000"></textarea>
+                <div class="char-count" id="contentCount">0/10000</div>
+                <div class="error-message" id="contentError"></div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-col">
+                    <div class="form-group">
+                        <label class="form-label" for="password">密码</label>
+                        <input type="password" id="password" class="form-input" placeholder="请输入密码（至少6位）">
+                        <div class="error-message" id="passwordError"></div>
+                    </div>
+                </div>
+                <div class="form-col">
+                    <div class="form-group">
+                        <label class="form-label" for="confirmPassword">确认密码</label>
+                        <input type="password" id="confirmPassword" class="form-input" placeholder="请再次输入密码">
+                        <div class="error-message" id="confirmPasswordError"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="loading-spinner"></div>
+                <p>正在创建文章...</p>
+            </div>
+
+            <div class="btn-group">
+                <a href="/" class="btn btn-secondary">返回首页</a>
+                <button type="submit" class="btn btn-primary">创建文章</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // 表单元素
+        const form = document.getElementById('createForm');
+        const titleInput = document.getElementById('title');
+        const authorInput = document.getElementById('author');
+        const contentInput = document.getElementById('content');
+        const passwordInput = document.getElementById('password');
+        const confirmPasswordInput = document.getElementById('confirmPassword');
+        const loading = document.getElementById('loading');
+        const successMessage = document.getElementById('successMessage');
+
+        // 字符计数
+        function setupCharCount(input, countElement, maxLength) {
+            function updateCount() {
+                const count = input.value.length;
+                countElement.textContent = `${count}/${maxLength}`;
+                
+                if (count > maxLength * 0.9) {
+                    countElement.className = 'char-count danger';
+                } else if (count > maxLength * 0.7) {
+                    countElement.className = 'char-count warning';
+                } else {
+                    countElement.className = 'char-count';
+                }
+            }
+            
+            input.addEventListener('input', updateCount);
+            updateCount();
+        }
+
+        // 设置字符计数
+        setupCharCount(titleInput, document.getElementById('titleCount'), 100);
+        setupCharCount(authorInput, document.getElementById('authorCount'), 50);
+        setupCharCount(contentInput, document.getElementById('contentCount'), 10000);
+
+        // 表单验证
+        function validateForm() {
+            let isValid = true;
+            
+            // 清除之前的错误信息
+            document.querySelectorAll('.error-message').forEach(el => {
+                el.style.display = 'none';
+            });
+
+            // 验证标题
+            if (!titleInput.value.trim()) {
+                showError('titleError', '请输入文章标题');
+                isValid = false;
+            } else if (titleInput.value.length > 100) {
+                showError('titleError', '标题长度不能超过100字符');
+                isValid = false;
+            }
+
+            // 验证作者
+            if (!authorInput.value.trim()) {
+                showError('authorError', '请输入作者名称');
+                isValid = false;
+            } else if (authorInput.value.length > 50) {
+                showError('authorError', '作者名称不能超过50字符');
+                isValid = false;
+            }
+
+            // 验证正文
+            if (!contentInput.value.trim()) {
+                showError('contentError', '请输入文章内容');
+                isValid = false;
+            } else if (contentInput.value.length > 10000) {
+                showError('contentError', '文章内容不能超过10000字符');
+                isValid = false;
+            }
+
+            // 验证密码
+            if (!passwordInput.value) {
+                showError('passwordError', '请输入密码');
+                isValid = false;
+            } else if (passwordInput.value.length < 6) {
+                showError('passwordError', '密码长度至少6位');
+                isValid = false;
+            }
+
+            // 验证确认密码
+            if (!confirmPasswordInput.value) {
+                showError('confirmPasswordError', '请再次输入密码');
+                isValid = false;
+            } else if (passwordInput.value !== confirmPasswordInput.value) {
+                showError('confirmPasswordError', '两次输入的密码不一致');
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        // 显示错误信息
+        function showError(elementId, message) {
+            const errorElement = document.getElementById(elementId);
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+        }
+
+        // 表单提交
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!validateForm()) {
+                return;
+            }
+
+            // 显示加载状态
+            loading.style.display = 'block';
+            form.style.display = 'none';
+
+            try {
+                const formData = {
+                    title: titleInput.value.trim(),
+                    author: authorInput.value.trim(),
+                    content: contentInput.value.trim(),
+                    password: passwordInput.value,
+                    confirmPassword: confirmPasswordInput.value
+                };
+
+                const response = await fetch('/api/articles', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // 显示成功消息
+                    loading.style.display = 'none';
+                    successMessage.style.display = 'block';
+                    
+                    // 3秒后跳转到首页
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 3000);
+                } else {
+                    // 显示错误信息
+                    loading.style.display = 'none';
+                    form.style.display = 'block';
+                    
+                    if (data.error) {
+                        alert(data.error);
+                    } else {
+                        alert('创建文章失败，请重试');
+                    }
+                }
+            } catch (error) {
+                console.error('创建文章失败:', error);
+                loading.style.display = 'none';
+                form.style.display = 'block';
+                alert('创建文章失败，请检查网络连接');
+            }
+        });
+
+        // 实时验证密码一致性
+        confirmPasswordInput.addEventListener('input', function() {
+            const confirmPasswordError = document.getElementById('confirmPasswordError');
+            if (passwordInput.value && confirmPasswordInput.value) {
+                if (passwordInput.value !== confirmPasswordInput.value) {
+                    confirmPasswordError.textContent = '两次输入的密码不一致';
+                    confirmPasswordError.style.display = 'block';
+                } else {
+                    confirmPasswordError.style.display = 'none';
+                }
+            }
+        });
+
+        // 键盘快捷键支持
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') {
+                form.dispatchEvent(new Event('submit'));
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文章详情 - 密码博客</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            line-height: 1.8;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-decoration: none;
+            color: white;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        
+        .article-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .article-header {
+            padding: 2rem;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .article-title {
+            font-size: 2.5rem;
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            font-weight: bold;
+        }
+        
+        .article-meta {
+            display: flex;
+            gap: 2rem;
+            color: #6c757d;
+            font-size: 1rem;
+        }
+        
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .meta-icon {
+            font-size: 1.2rem;
+        }
+        
+        .article-content {
+            padding: 2rem;
+        }
+        
+        .article-text {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #495057;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .article-actions {
+            padding: 2rem;
+            background: #f8f9fa;
+            border-top: 1px solid #dee2e6;
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+        
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            font-weight: bold;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 2rem;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .modal-title {
+            font-size: 1.5rem;
+            color: #2c3e50;
+        }
+        
+        .close {
+            font-size: 2rem;
+            cursor: pointer;
+            color: #6c757d;
+            transition: color 0.3s ease;
+        }
+        
+        .close:hover {
+            color: #dc3545;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+            font-weight: bold;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .form-textarea {
+            min-height: 200px;
+            resize: vertical;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+        
+        .error-message {
+            color: #dc3545;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            z-index: 2000;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.success {
+            background: #28a745;
+        }
+        
+        .notification.error {
+            background: #dc3545;
+        }
+        
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+        }
+        
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 768px) {
+            .header-content {
+                padding: 0 1rem;
+            }
+            
+            .container {
+                padding: 0 1rem;
+            }
+            
+            .article-title {
+                font-size: 2rem;
+            }
+            
+            .article-meta {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .article-actions {
+                flex-direction: column;
+            }
+            
+            .modal-content {
+                width: 95%;
+                margin: 10% auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <a href="/" class="logo">密码博客</a>
+            <div class="nav-links">
+                <a href="/" class="nav-link">首页</a>
+                <a href="/create" class="nav-link">创建文章</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="article-container">
+            <div class="article-header">
+                <h1 class="article-title" id="articleTitle">文章标题</h1>
+                <div class="article-meta">
+                    <div class="meta-item">
+                        <span class="meta-icon">👤</span>
+                        <span id="articleAuthor">作者</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-icon">📅</span>
+                        <span id="articleDate">创建日期</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-icon">🔄</span>
+                        <span id="articleUpdated">更新日期</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="article-content">
+                <div class="article-text" id="articleContent">
+                    文章内容加载中...
+                </div>
+            </div>
+            
+            <div class="article-actions">
+                <button class="btn btn-primary" onclick="editArticle()">修改文章</button>
+                <button class="btn btn-danger" onclick="deleteArticle()">删除文章</button>
+                <a href="/" class="btn btn-secondary">返回首页</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 编辑文章模态框 -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">编辑文章</h3>
+                <span class="close" onclick="closeEditModal()">&times;</span>
+            </div>
+            <form id="editForm">
+                <div class="form-group">
+                    <label class="form-label" for="editTitle">文章标题</label>
+                    <input type="text" id="editTitle" class="form-input" maxlength="100">
+                    <div class="error-message" id="editTitleError"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="editAuthor">作者</label>
+                    <input type="text" id="editAuthor" class="form-input" maxlength="50">
+                    <div class="error-message" id="editAuthorError"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="editContent">文章内容</label>
+                    <textarea id="editContent" class="form-input form-textarea" maxlength="10000"></textarea>
+                    <div class="error-message" id="editContentError"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="editPassword">请输入密码以确认修改</label>
+                    <input type="password" id="editPassword" class="form-input">
+                    <div class="error-message" id="editPasswordError"></div>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeEditModal()">取消</button>
+                    <button type="submit" class="btn btn-primary">保存修改</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 加载遮罩 -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <script>
+        let currentArticle = null;
+
+        // 页面加载时获取文章内容
+        document.addEventListener('DOMContentLoaded', function() {
+            loadArticle();
+        });
+
+        // 加载文章内容
+        function loadArticle() {
+            const articleData = sessionStorage.getItem('currentArticle');
+            
+            if (!articleData) {
+                alert('未找到文章数据，请重新选择文章');
+                window.location.href = '/';
+                return;
+            }
+
+            try {
+                currentArticle = JSON.parse(articleData);
+                displayArticle(currentArticle);
+            } catch (error) {
+                console.error('解析文章数据失败:', error);
+                alert('文章数据格式错误');
+                window.location.href = '/';
+            }
+        }
+
+        // 显示文章内容
+        function displayArticle(article) {
+            document.getElementById('articleTitle').textContent = article.title;
+            document.getElementById('articleAuthor').textContent = article.author;
+            document.getElementById('articleContent').textContent = article.content;
+            
+            const createdDate = new Date(article.created_at).toLocaleDateString('zh-CN');
+            const updatedDate = new Date(article.updated_at).toLocaleDateString('zh-CN');
+            
+            document.getElementById('articleDate').textContent = createdDate;
+            document.getElementById('articleUpdated').textContent = updatedDate;
+            
+            document.title = `${article.title} - 密码博客`;
+        }
+
+        // 编辑文章
+        function editArticle() {
+            if (!currentArticle) return;
+            
+            // 填充编辑表单
+            document.getElementById('editTitle').value = currentArticle.title;
+            document.getElementById('editAuthor').value = currentArticle.author;
+            document.getElementById('editContent').value = currentArticle.content;
+            document.getElementById('editPassword').value = '';
+            
+            // 清除错误信息
+            document.querySelectorAll('.error-message').forEach(el => {
+                el.style.display = 'none';
+            });
+            
+            // 显示模态框
+            document.getElementById('editModal').style.display = 'block';
+        }
+
+        // 关闭编辑模态框
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        // 删除文章
+        async function deleteArticle() {
+            if (!currentArticle) return;
+            
+            if (!confirm('确定要删除这篇文章吗？此操作不可撤销。')) {
+                return;
+            }
+
+            showLoading();
+
+            try {
+                const response = await fetch(`/api/articles/${currentArticle.id}`, {
+                    method: 'DELETE'
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showNotification('文章删除成功', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 1500);
+                } else {
+                    showNotification(data.error || '删除文章失败', 'error');
+                }
+            } catch (error) {
+                console.error('删除文章失败:', error);
+                showNotification('删除文章失败', 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // 编辑表单提交
+        document.getElementById('editForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!validateEditForm()) {
+                return;
+            }
+
+            showLoading();
+
+            try {
+                const formData = {
+                    title: document.getElementById('editTitle').value.trim(),
+                    author: document.getElementById('editAuthor').value.trim(),
+                    content: document.getElementById('editContent').value.trim(),
+                    password: document.getElementById('editPassword').value
+                };
+
+                const response = await fetch(`/api/articles/${currentArticle.id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // 更新当前文章数据
+                    currentArticle.title = formData.title;
+                    currentArticle.author = formData.author;
+                    currentArticle.content = formData.content;
+                    currentArticle.updated_at = new Date().toISOString();
+                    
+                    // 更新显示
+                    displayArticle(currentArticle);
+                    
+                    // 关闭模态框
+                    closeEditModal();
+                    
+                    showNotification('文章更新成功', 'success');
+                } else {
+                    showNotification(data.error || '更新文章失败', 'error');
+                }
+            } catch (error) {
+                console.error('更新文章失败:', error);
+                showNotification('更新文章失败', 'error');
+            } finally {
+                hideLoading();
+            }
+        });
+
+        // 验证编辑表单
+        function validateEditForm() {
+            let isValid = true;
+            
+            // 清除之前的错误信息
+            document.querySelectorAll('.error-message').forEach(el => {
+                el.style.display = 'none';
+            });
+
+            const title = document.getElementById('editTitle').value.trim();
+            const author = document.getElementById('editAuthor').value.trim();
+            const content = document.getElementById('editContent').value.trim();
+            const password = document.getElementById('editPassword').value;
+
+            if (!title) {
+                showError('editTitleError', '请输入文章标题');
+                isValid = false;
+            }
+
+            if (!author) {
+                showError('editAuthorError', '请输入作者名称');
+                isValid = false;
+            }
+
+            if (!content) {
+                showError('editContentError', '请输入文章内容');
+                isValid = false;
+            }
+
+            if (!password) {
+                showError('editPasswordError', '请输入密码以确认修改');
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        // 显示错误信息
+        function showError(elementId, message) {
+            const errorElement = document.getElementById(elementId);
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+        }
+
+        // 显示通知
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.classList.add('show');
+            }, 100);
+
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+
+        // 显示加载遮罩
+        function showLoading() {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        }
+
+        // 隐藏加载遮罩
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+
+        // 模态框外部点击关闭
+        document.getElementById('editModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeEditModal();
+            }
+        });
+
+        // 键盘事件
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeEditModal();
+            }
+        });
+
+        // 页面离开时清除会话数据
+        window.addEventListener('beforeunload', function() {
+            sessionStorage.removeItem('currentArticle');
+        });
+    </script>
+</body>
+</html>

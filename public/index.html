@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>一瞥博客</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .add-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .add-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.1);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 100px 2rem 2rem;
+        }
+        
+        .articles-list {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .article-item {
+            padding: 1.5rem;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .article-item:hover {
+            background: #f8f9fa;
+        }
+        
+        .article-item:last-child {
+            border-bottom: none;
+        }
+        
+        .article-info {
+            flex: 1;
+        }
+        
+        .article-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+        
+        .article-meta {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        
+        .article-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .delete-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .delete-btn:hover {
+            background: #c0392b;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 2rem;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .modal-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .modal-body {
+            margin-bottom: 1.5rem;
+        }
+        
+        .modal-input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+        
+        .modal-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5a6fd8;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #7f8c8d;
+        }
+        
+        .empty-state img {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            border-radius: 5px;
+            color: white;
+            font-weight: bold;
+            z-index: 3000;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.success {
+            background: #27ae60;
+        }
+        
+        .notification.error {
+            background: #e74c3c;
+        }
+        
+        @media (max-width: 768px) {
+            .header {
+                padding: 1rem;
+            }
+            
+            .container {
+                padding: 90px 1rem 1rem;
+            }
+            
+            .article-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            
+            .article-actions {
+                align-self: flex-end;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">密码博客</div>
+        <button class="add-btn" onclick="createArticle()">+</button>
+    </div>
+
+    <div class="container">
+        <div class="articles-list" id="articlesList">
+            <!-- 文章列表将在这里动态生成 -->
+        </div>
+    </div>
+
+    <!-- 密码验证模态框 -->
+    <div id="passwordModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>输入密码以阅读文章</h3>
+            </div>
+            <div class="modal-body">
+                <input type="password" id="passwordInput" class="modal-input" placeholder="请输入密码">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal()">取消</button>
+                <button class="btn btn-primary" onclick="verifyPassword()">确认</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentArticleId = null;
+        let articles = [];
+
+        // 页面加载时获取文章列表
+        document.addEventListener('DOMContentLoaded', function() {
+            loadArticles();
+        });
+
+        // 加载文章列表
+        async function loadArticles() {
+            try {
+                const response = await fetch('/api/articles');
+                articles = await response.json();
+                renderArticles();
+            } catch (error) {
+                console.error('加载文章失败:', error);
+                showNotification('加载文章失败', 'error');
+            }
+        }
+
+        // 渲染文章列表
+        function renderArticles() {
+            const articlesList = document.getElementById('articlesList');
+            
+            if (articles.length === 0) {
+                articlesList.innerHTML = `
+                    <div class="empty-state">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">📝</div>
+                        <h3>暂无文章</h3>
+                        <p>点击右上角的 + 号创建第一篇文章吧！</p>
+                    </div>
+                `;
+                return;
+            }
+
+            articlesList.innerHTML = articles.map(article => `
+                <div class="article-item">
+                    <div class="article-info" onclick="readArticle(${article.id})">
+                        <div class="article-title">${escapeHtml(article.title)}</div>
+                        <div class="article-meta">
+                            作者：${escapeHtml(article.author)} | 
+                            创建时间：${new Date(article.created_at).toLocaleDateString('zh-CN')}
+                        </div>
+                    </div>
+                    <div class="article-actions">
+                        <button class="delete-btn" onclick="deleteArticle(${article.id}, event)">删除</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 创建文章
+        function createArticle() {
+            window.location.href = '/create';
+        }
+
+        // 阅读文章
+        function readArticle(id) {
+            currentArticleId = id;
+            document.getElementById('passwordModal').style.display = 'block';
+            document.getElementById('passwordInput').focus();
+        }
+
+        // 验证密码
+        async function verifyPassword() {
+            const password = document.getElementById('passwordInput').value;
+            
+            if (!password) {
+                showNotification('请输入密码', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/articles/${currentArticleId}/verify`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // 密码验证成功，跳转到文章阅读页面
+                    sessionStorage.setItem('currentArticle', JSON.stringify(data.article));
+                    window.location.href = '/article.html';
+                } else {
+                    showNotification(data.error || '密码验证失败', 'error');
+                }
+            } catch (error) {
+                console.error('验证密码失败:', error);
+                showNotification('验证密码失败', 'error');
+            }
+        }
+
+        // 删除文章
+        async function deleteArticle(id, event) {
+            event.stopPropagation();
+            
+            if (!confirm('确定要删除这篇文章吗？此操作不可撤销。')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/articles/${id}`, {
+                    method: 'DELETE'
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showNotification('文章删除成功', 'success');
+                    loadArticles(); // 重新加载文章列表
+                } else {
+                    showNotification(data.error || '删除文章失败', 'error');
+                }
+            } catch (error) {
+                console.error('删除文章失败:', error);
+                showNotification('删除文章失败', 'error');
+            }
+        }
+
+        // 关闭模态框
+        function closeModal() {
+            document.getElementById('passwordModal').style.display = 'none';
+            document.getElementById('passwordInput').value = '';
+            currentArticleId = null;
+        }
+
+        // 监听键盘事件
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeModal();
+            }
+            if (event.key === 'Enter' && document.getElementById('passwordModal').style.display === 'block') {
+                verifyPassword();
+            }
+        });
+
+        // 点击模态框外部关闭
+        document.getElementById('passwordModal').addEventListener('click', function(event) {
+            if (event.target === this) {
+                closeModal();
+            }
+        });
+
+        // 显示通知
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.classList.add('show');
+            }, 100);
+
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+
+        // HTML转义
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
