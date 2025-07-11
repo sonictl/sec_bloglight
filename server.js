@@ -1,4 +1,5 @@
 const express = require('express');
+const session = require('express-session');
 const sqlite3 = require('sqlite3').verbose();
 const bcrypt = require('bcrypt');
 const path = require('path');
@@ -8,6 +9,19 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
+app.use(session({
+    secret: process.env.SESSION_SECRET || 'default_secret',  // 环境变量 ADMIN_PASSWD 
+    resave: false,
+    saveUninitialized: false
+}));
+
+//管理员认证中间件
+function requireAdminAuth(req, res, next) {
+    if (req.session && req.session.isAdmin) {
+        return next();
+    }
+    res.status(403).send('未授权访问');
+}
 
 // 初始化数据库
 const db = new sqlite3.Database('blog.db');
@@ -195,23 +209,109 @@ app.put('/api/articles/:id', async (req, res) => {
 });
 
 // 删除文章
-app.delete('/api/articles/:id', (req, res) => {
+app.delete('/api/articles/:id', async (req, res) => {
     const articleId = req.params.id;
-    
-    db.run(`
-        DELETE FROM articles WHERE id = ?
-    `, [articleId], function(err) {
+    const { password } = req.body;
+
+    if (!password) {
+        return res.status(400).json({ error: '请提供密码以确认删除' });
+    }
+
+    db.get(`SELECT password_hash FROM articles WHERE id = ?`, [articleId], async (err, row) => {
         if (err) {
-            res.status(500).json({ error: err.message });
-            return;
+            return res.status(500).json({ error: err.message });
         }
-        
-        if (this.changes === 0) {
-            res.status(404).json({ error: '文章不存在' });
-            return;
+
+        if (!row) {
+            return res.status(404).json({ error: '文章不存在' });
         }
-        
-        res.json({ success: true, message: '文章删除成功' });
+
+        try {
+            const isValid = await bcrypt.compare(password, row.password_hash);
+            if (!isValid) {
+                return res.status(401).json({ error: '密码错误' });
+            }
+
+            db.run(`DELETE FROM articles WHERE id = ?`, [articleId], function(err) {
+                if (err) {
+                    return res.status(500).json({ error: err.message });
+                }
+                res.json({ success: true, message: '文章删除成功' });
+            });
+        } catch (error) {
+            res.status(500).json({ error: '服务器错误' });
+        }
+    });
+});
+
+// 管理员登录页面
+app.get('/admin/login', (req, res) => {
+    res.send(`
+        <form method="POST" action="/admin/login">
+            <h2>管理员登录</h2>
+            <input type="password" name="password" placeholder="管理员密码" required />
+            <button type="submit">登录</button>
+        </form>
+    `);
+});
+
+// 处理管理员登录请求
+app.post('/admin/login', (req, res) => {
+    const password = req.body.password;
+    if (password === process.env.ADMIN_PASSWD) {
+        req.session.isAdmin = true;
+        res.redirect('/admin');
+    } else {
+        res.send('密码错误');
+    }
+});
+
+// 管理后台页面
+app.get('/admin', requireAdminAuth, (req, res) => {
+    db.all(`SELECT id, title, author, created_at FROM articles ORDER BY created_at DESC`, (err, rows) => {
+        if (err) {
+            return res.status(500).send('数据库错误');
+        }
+
+        const articlesHtml = rows.map(row => `
+            <li>
+                <strong>${row.title}</strong> by ${row.author} (${row.created_at})
+                <form method="POST" action="/admin/delete/${row.id}" style="display:inline;">
+                    <button type="submit">删除</button>
+                </form>
+            </li>
+        `).join('');
+
+        res.send(`
+            <style>
+                body { font-family: Arial; padding: 2rem; background: #f0f2f5; }
+                .container { max-width: 800px; margin: auto; background: #fff; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+                h2 { margin-bottom: 1rem; }
+                input { padding: 0.5rem; font-size: 1rem; width: 300px; margin-bottom: 1rem; }
+                button { padding: 0.5rem 1rem; margin-right: 0.5rem; }
+                .article { padding: 0.5rem 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; }
+            </style>
+            <h1>管理员后台</h1>
+            <form method="POST" action="/admin/deleteAll">
+                <button type="submit" onclick="return confirm('确认要删除所有文章吗？')">⚠️ 一键删除所有文章</button>
+            </form>
+            <ul>${articlesHtml}</ul>
+            <a href="/">返回首页</a>
+        `);
+    });
+});
+// 管理后删除指定文章
+app.post('/admin/delete/:id', requireAdminAuth, (req, res) => {
+    db.run(`DELETE FROM articles WHERE id = ?`, [req.params.id], function(err) {
+        if (err) return res.status(500).send('删除失败');
+        res.redirect('/admin');
+    });
+});
+// 管理后一键删除所有文章
+app.post('/admin/deleteAll', requireAdminAuth, (req, res) => {
+    db.run(`DELETE FROM articles`, function(err) {
+        if (err) return res.status(500).send('删除失败');
+        res.redirect('/admin');
     });
 });
 

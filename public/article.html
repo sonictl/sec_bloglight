@@ -497,7 +497,13 @@
         // 删除文章
         async function deleteArticle() {
             if (!currentArticle) return;
-            
+
+            const password = prompt("请输入密码以确认删除：");
+            if (!password) {
+                showNotification('必须输入密码以删除文章', 'error');
+                return;
+            }
+
             if (!confirm('确定要删除这篇文章吗？此操作不可撤销。')) {
                 return;
             }
@@ -506,7 +512,11 @@
 
             try {
                 const response = await fetch(`/api/articles/${currentArticle.id}`, {
-                    method: 'DELETE'
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ password })
                 });
 
                 const data = await response.json();
@@ -526,6 +536,7 @@
                 hideLoading();
             }
         }
+
 
         // 编辑表单提交
         document.getElementById('editForm').addEventListener('submit', async function(e) {

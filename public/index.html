@@ -9,7 +9,9 @@
 <body>
     <div class="header">
         <div class="logo">一瞥博客</div>
-        <button class="add-btn" onclick="createArticle()">+</button>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <button class="add-btn" onclick="createArticle()">+</button>
+        </div>
     </div>
 
     <div class="container">
@@ -64,7 +66,7 @@
                     <div class="empty-state">
                         <div style="font-size: 3rem; margin-bottom: 1rem;">📝</div>
                         <h3>暂无文章</h3>
-                        <p>点击右上角的 + 号创建第一篇文章吧！</p>
+                        <p>点击右上角的 + 号创建第一篇文章！</p>
                     </div>
                 `;
                 return;
@@ -78,9 +80,6 @@
                             作者：${escapeHtml(article.author)} | 
                             创建时间：${new Date(article.created_at).toLocaleDateString('zh-CN')}
                         </div>
-                    </div>
-                    <div class="article-actions">
-                        <button class="delete-btn" onclick="deleteArticle(${article.id}, event)">删除</button>
                     </div>
                 </div>
             `).join('');
@@ -128,33 +127,6 @@
             } catch (error) {
                 console.error('验证密码失败:', error);
                 showNotification('验证密码失败', 'error');
-            }
-        }
-
-        // 删除文章
-        async function deleteArticle(id, event) {
-            event.stopPropagation();
-            
-            if (!confirm('确定要删除这篇文章吗？此操作不可撤销。')) {
-                return;
-            }
-
-            try {
-                const response = await fetch(`/api/articles/${id}`, {
-                    method: 'DELETE'
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    showNotification('文章删除成功', 'success');
-                    loadArticles(); // 重新加载文章列表
-                } else {
-                    showNotification(data.error || '删除文章失败', 'error');
-                }
-            } catch (error) {
-                console.error('删除文章失败:', error);
-                showNotification('删除文章失败', 'error');
             }
         }
 

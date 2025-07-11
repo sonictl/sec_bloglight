@@ -30,6 +30,13 @@
             font-size: 1.5rem;
             font-weight: bold;
         }
+
+        .admin-link {
+            color: white;
+            text-decoration: none;
+            font-size: 1.2rem;
+            transition: color 0.3s ease;
+        }
         
         .add-btn {
             background: rgba(255,255,255,0.2);
