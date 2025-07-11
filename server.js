@@ -10,7 +10,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 app.use(session({
-    secret: process.env.SESSION_SECRET || 'default_secret',  // 环境变量 ADMIN_PASSWD 
+    secret: process.env.SESSION_SECRET || 'default_terces&secret',  // 会话密钥 
     resave: false,
     saveUninitialized: false
 }));
